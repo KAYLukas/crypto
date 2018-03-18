@@ -24,6 +24,7 @@ import (
 
 	"golang.org/x/crypto/openpgp/elgamal"
 	"golang.org/x/crypto/openpgp/errors"
+	"golang.org/x/crypto/ed25519"
 )
 
 var (
@@ -33,9 +34,13 @@ var (
 	oidCurveP384 []byte = []byte{0x2B, 0x81, 0x04, 0x00, 0x22}
 	// NIST curve P-521
 	oidCurveP521 []byte = []byte{0x2B, 0x81, 0x04, 0x00, 0x23}
+	// ed25519
+	oidCurveED25519 []byte = []byte{0x2B, 0x06, 0x01, 0x04, 0x01, 0xda, 0x47, 0x0f, 0x01}
+	// curve25519
+	oidCurveCurve25519 []byte = []byte{0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01}
 )
 
-const maxOIDLength = 8
+const maxOIDLength = 16
 
 // ecdsaKey stores the algorithm-specific fields for ECDSA keys.
 // as defined in RFC 6637, Section 9.
@@ -43,6 +48,11 @@ type ecdsaKey struct {
 	// oid contains the OID byte sequence identifying the elliptic curve used
 	oid []byte
 	// p contains the elliptic curve point that represents the public key
+	p parsedMPI
+}
+
+type eddsaKey struct {
+	oid [] byte
 	p parsedMPI
 }
 
@@ -88,6 +98,8 @@ func (f *ecdsaKey) newECDSA() (*ecdsa.PublicKey, error) {
 		c = elliptic.P384()
 	} else if bytes.Equal(f.oid, oidCurveP521) {
 		c = elliptic.P521()
+	} else if bytes.Equal(f.oid, oidCurveCurve25519) {
+		return nil, errors.UnsupportedError(fmt.Sprintf("unsupported oid: %x", f.oid))
 	} else {
 		return nil, errors.UnsupportedError(fmt.Sprintf("unsupported oid: %x", f.oid))
 	}
@@ -96,6 +108,13 @@ func (f *ecdsaKey) newECDSA() (*ecdsa.PublicKey, error) {
 		return nil, errors.UnsupportedError("failed to parse EC point")
 	}
 	return &ecdsa.PublicKey{Curve: c, X: x, Y: y}, nil
+}
+
+func (f* ecdsaKey) newEDDSA() (ed25519.PublicKey, error) {
+	if bytes.Equal(f.oid, oidCurveED25519) {
+		return ed25519.PublicKey(f.p.bytes), nil
+	}
+	return nil, errors.UnsupportedError(fmt.Sprintf("unsupported oid: %x", f.oid))
 }
 
 func (f *ecdsaKey) byteLen() int {
@@ -275,6 +294,12 @@ func (pk *PublicKey) parse(r io.Reader) (err error) {
 			return err
 		}
 		pk.PublicKey, err = pk.ec.newECDSA()
+	case PubKeyAlgoEDDSA:
+		pk.ec = new(ecdsaKey)
+		if err = pk.ec.parse(r); err != nil {
+			return err
+		}
+		pk.PublicKey, err = pk.ec.newEDDSA()
 	case PubKeyAlgoECDH:
 		pk.ec = new(ecdsaKey)
 		if err = pk.ec.parse(r); err != nil {
@@ -405,7 +430,7 @@ func (pk *PublicKey) SerializeSignaturePrefix(h io.Writer) {
 		pLength += 2 + uint16(len(pk.p.bytes))
 		pLength += 2 + uint16(len(pk.g.bytes))
 		pLength += 2 + uint16(len(pk.y.bytes))
-	case PubKeyAlgoECDSA:
+	case PubKeyAlgoECDSA, PubKeyAlgoEDDSA:
 		pLength += uint16(pk.ec.byteLen())
 	case PubKeyAlgoECDH:
 		pLength += uint16(pk.ec.byteLen())

@@ -282,10 +282,11 @@ func (pk *PrivateKey) parsePrivateKey(data []byte) (err error) {
 		return pk.parseDSAPrivateKey(data)
 	case PubKeyAlgoElGamal:
 		return pk.parseElGamalPrivateKey(data)
-	case PubKeyAlgoECDSA:
+	case PubKeyAlgoECDSA, PubKeyAlgoECDH:
 		return pk.parseECDSAPrivateKey(data)
 	}
-	panic("impossible")
+	err = errors.UnsupportedError("Unsupported public key algorithm")
+	return
 }
 
 func (pk *PrivateKey) parseRSAPrivateKey(data []byte) (err error) {
