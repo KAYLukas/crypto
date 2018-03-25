@@ -28,6 +28,7 @@ import (
 	"golang.org/x/crypto/openpgp/errors"
 	"golang.org/x/crypto/openpgp/internal/algorithm"
 	"golang.org/x/crypto/openpgp/internal/encoding"
+	"golang.org/x/crypto/curve25519"
 )
 
 var (
@@ -38,6 +39,8 @@ var (
 	// NIST curve P-521
 	oidCurveP521 []byte = []byte{0x2B, 0x81, 0x04, 0x00, 0x23}
 
+	// Curve25519
+	oidCurve25519 []byte = []byte{0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01}
 	// Ed25519
 	oidEd25519 = []byte{0x2b, 0x06, 0x01, 0x04, 0x01, 0xda, 0x47, 0x0f, 0x01}
 )
@@ -357,6 +360,8 @@ func (pk *PublicKey) parseECDH(r io.Reader) (err error) {
 		c = elliptic.P384()
 	} else if bytes.Equal(pk.oid.Bytes(), oidCurveP521) {
 		c = elliptic.P521()
+	} else if bytes.Equal(pk.oid.Bytes(), oidCurve25519){
+		c = curve25519.Curve25519()
 	} else {
 		return errors.UnsupportedError(fmt.Sprintf("unsupported oid: %x", pk.oid))
 	}
