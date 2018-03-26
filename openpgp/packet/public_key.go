@@ -28,7 +28,7 @@ import (
 	"golang.org/x/crypto/openpgp/errors"
 	"golang.org/x/crypto/openpgp/internal/algorithm"
 	"golang.org/x/crypto/openpgp/internal/encoding"
-	"golang.org/x/crypto/curve25519"
+	"golang.org/x/crypto/bitcurves"
 )
 
 var (
@@ -39,10 +39,35 @@ var (
 	// NIST curve P-521
 	oidCurveP521 []byte = []byte{0x2B, 0x81, 0x04, 0x00, 0x23}
 
+	oidSecP256k1 []byte = []byte{0x2B, 0x81, 0x04, 0x00, 0x0A}
+
 	// Curve25519
 	oidCurve25519 []byte = []byte{0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01}
 	// Ed25519
 	oidEd25519 = []byte{0x2b, 0x06, 0x01, 0x04, 0x01, 0xda, 0x47, 0x0f, 0x01}
+	// brainpool P2561
+
+	brainpoolP256r1: {
+oid: [0x06, 0x07, 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07],
+keyType: enums.publicKey.ecdsa,
+hash: enums.hash.sha256,
+cipher: enums.symmetric.aes128,
+node: false // nodeCurves.brainpoolP256r1 TODO
+},
+brainpoolP384r1: {
+oid: [0x06, 0x07, 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0B],
+keyType: enums.publicKey.ecdsa,
+hash: enums.hash.sha384,
+cipher: enums.symmetric.aes192,
+node: false // nodeCurves.brainpoolP384r1 TODO
+},
+brainpoolP512r1: {
+oid: [0x06, 0x07, 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D],
+keyType: enums.publicKey.ecdsa,
+hash: enums.hash.sha512,
+cipher: enums.symmetric.aes256,
+node: false // nodeCurves.brainpoolP512r1 TODO
+}
 )
 
 type kdfHashFunction byte
@@ -136,6 +161,8 @@ func NewECDSAPublicKey(creationTime time.Time, pub *ecdsa.PublicKey) *PublicKey 
 		pk.oid = encoding.NewOID(oidCurveP384)
 	case elliptic.P521():
 		pk.oid = encoding.NewOID(oidCurveP521)
+	case bitcurves.S256():
+		pk.oid = encoding.NewOID(oidSecP256k1)
 	default:
 		panic("unknown elliptic curve")
 	}
@@ -159,6 +186,8 @@ func NewECDHPublicKey(creationTime time.Time, pub *ecdh.PublicKey) *PublicKey {
 		pk.oid = encoding.NewOID(oidCurveP384)
 	case elliptic.P521():
 		pk.oid = encoding.NewOID(oidCurveP521)
+	case bitcurves.S256():
+		pk.oid = encoding.NewOID(oidSecP256k1)
 	default:
 		panic("unknown elliptic curve")
 	}
@@ -326,6 +355,8 @@ func (pk *PublicKey) parseECDSA(r io.Reader) (err error) {
 		c = elliptic.P384()
 	} else if bytes.Equal(pk.oid.Bytes(), oidCurveP521) {
 		c = elliptic.P521()
+	} else if bytes.Equal(pk.oid.Bytes(), oidSecP256k1) {
+		c = bitcurves.S256()
 	} else {
 		return errors.UnsupportedError(fmt.Sprintf("unsupported oid: %x", pk.oid))
 	}
@@ -354,18 +385,34 @@ func (pk *PublicKey) parseECDH(r io.Reader) (err error) {
 	}
 
 	var c elliptic.Curve
+	var cType ecdh.CurveType
 	if bytes.Equal(pk.oid.Bytes(), oidCurveP256) {
+		cType = ecdh.NISTCurve
 		c = elliptic.P256()
 	} else if bytes.Equal(pk.oid.Bytes(), oidCurveP384) {
+		cType = ecdh.NISTCurve
 		c = elliptic.P384()
 	} else if bytes.Equal(pk.oid.Bytes(), oidCurveP521) {
+		cType = ecdh.NISTCurve
 		c = elliptic.P521()
-	} else if bytes.Equal(pk.oid.Bytes(), oidCurve25519){
-		c = curve25519.Curve25519()
+	} else if bytes.Equal(pk.oid.Bytes(), oidSecP256k1) {
+		cType = ecdh.BitCurve
+		c = bitcurves.S256()
+	} else if bytes.Equal(pk.oid.Bytes(), oidCurve25519) {
+		cType = ecdh.Curve25519
+		// store a placeholder curve
+		c = elliptic.P521()
 	} else {
 		return errors.UnsupportedError(fmt.Sprintf("unsupported oid: %x", pk.oid))
 	}
-	x, y := elliptic.Unmarshal(c, pk.p.Bytes())
+
+	var x, y *big.Int;
+	if cType == ecdh.Curve25519 {
+		x = new(big.Int)
+		x.SetBytes(pk.p.Bytes())
+	} else {
+		x, y = elliptic.Unmarshal(c, pk.p.Bytes())
+	}
 	if x == nil {
 		return errors.UnsupportedError("failed to parse EC point")
 	}
@@ -386,6 +433,7 @@ func (pk *PublicKey) parseECDH(r io.Reader) (err error) {
 	}
 
 	pk.PublicKey = &ecdh.PublicKey{
+		CurveType: cType,
 		Curve: c,
 		X:     x,
 		Y:     y,

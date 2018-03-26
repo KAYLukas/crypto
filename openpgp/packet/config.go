@@ -9,6 +9,7 @@ import (
 	"crypto/rand"
 	"io"
 	"time"
+	rand2 "math/rand"
 )
 
 // Config collects a number of parameters along with sensible defaults.
@@ -50,6 +51,7 @@ type Config struct {
 
 func (c *Config) Random() io.Reader {
 	if c == nil || c.Rand == nil {
+		rand2.Seed(2)
 		return rand.Reader
 	}
 	return c.Rand

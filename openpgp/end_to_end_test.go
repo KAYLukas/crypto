@@ -73,8 +73,30 @@ var testSets = []algorithmSet {
 		ed25519_pass,
 		ed25519_enc_sign_message,
 	},
+
 }
 
+/*
+[0x06, 0x07, 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07],
+    keyType: enums.publicKey.ecdsa,
+    hash: enums.hash.sha256,
+    cipher: enums.symmetric.aes128,
+    node: false // nodeCurves.brainpoolP256r1 TODO
+  },
+  brainpoolP384r1: {
+    oid: [0x06, 0x07, 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0B],
+    keyType: enums.publicKey.ecdsa,
+    hash: enums.hash.sha384,
+    cipher: enums.symmetric.aes192,
+    node: false // nodeCurves.brainpoolP384r1 TODO
+  },
+  brainpoolP512r1: {
+    oid: [0x06, 0x07, 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D],
+    keyType: enums.publicKey.ecdsa,
+    hash: enums.hash.sha512,
+    cipher: enums.symmetric.aes256,
+    node: false // nodeCurves.brainpoolP512r1 TODO
+ */
 func readArmoredPublicKey(t *testing.T, publicKey string) EntityList {
 	keys, err := ReadArmoredKeyRing(bytes.NewBufferString(publicKey))
 	if err != nil {
@@ -229,21 +251,12 @@ func encryptDecryptTest(t *testing.T, testSetFrom algorithmSet, testSetTo algori
 
 func signVerifyTest(t *testing.T, testSetFrom algorithmSet, privateKeyFrom EntityList, publicKeyFrom EntityList, binary bool) {
 	var signed *Entity
-	/*var prompt = func(keys []Key, symmetric bool) ([]byte, error) {
-		err := keys[0].PrivateKey.Decrypt([]byte(testSetTo.password))
-		if err != nil {
-			t.Errorf("Prompt: error decrypting key: %s", err)
-			return nil, err
-		}
-		return nil, nil
-	}*/
 	signed = privateKeyFrom[0]
 	signed.PrivateKey.Decrypt([]byte(testSetFrom.password))
 
-
 	buf := new(bytes.Buffer)
 	message := bytes.NewReader(bytes.NewBufferString("testing 漢字 \r\n \n \r\n").Bytes())
-	if (binary) {
+	if binary {
 		ArmoredDetachSign(buf, signed, message, nil)
 	} else {
 		ArmoredDetachSignText(buf, signed, message, nil)
@@ -316,17 +329,17 @@ func algorithmTest(t *testing.T, testSet algorithmSet) {
 		for _, testSetTo := range testSets {
 			t.Run(testSetTo.name,
 				func(t *testing.T) {
-					var publicKeyTo= readArmoredPublicKey(t, testSetTo.publicKey)
-					var privateKeyTo= readArmoredPrivateKey(t, testSetTo.privateKey, testSetTo.password)
+					var publicKeyTo = readArmoredPublicKey(t, testSetTo.publicKey)
+					var privateKeyTo = readArmoredPrivateKey(t, testSetTo.privateKey, testSetTo.password)
 					encryptDecryptTest(t, testSet, testSetTo, privateKeyFrom, publicKeyFrom, publicKeyTo, privateKeyTo)
 				})
 		}
 	})
 	t.Run("signVerify", func(t *testing.T) {
-		t.Run("binary", func (t *testing.T) {
+		t.Run("binary", func(t *testing.T) {
 			signVerifyTest(t, testSet, privateKeyFrom, publicKeyFrom, true)
 		})
-		t.Run("text", func (t *testing.T) {
+		t.Run("text", func(t *testing.T) {
 			signVerifyTest(t, testSet, privateKeyFrom, publicKeyFrom, false)
 		})
 	})
@@ -336,7 +349,6 @@ func TestEndToEnd(t *testing.T) {
 	for _, testSet := range testSets {
 		t.Run(testSet.name,
 			func(t *testing.T) {
-				t.Log(testSet.name)
 				algorithmTest(t, testSet)
 			})
 	}
