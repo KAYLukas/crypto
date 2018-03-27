@@ -16,6 +16,7 @@ import (
 )
 
 type algorithmSet struct {
+	message string
 	name string
 	privateKey string
 	publicKey string
@@ -25,6 +26,7 @@ type algorithmSet struct {
 
 var testSets = []algorithmSet {
 	{
+		test_message,
 		"rsa",
 		rsa_priv_key,
 		rsa_pub_key,
@@ -32,6 +34,7 @@ var testSets = []algorithmSet {
 		rsa_enc_sign_message,
 	},
 	{
+		test_message,
 		"dsa",
 		dsa_elgamal_priv,
 		dsa_elgamal_pub,
@@ -39,6 +42,7 @@ var testSets = []algorithmSet {
 		dsa_elgamal_enc_sign_message,
 	},
 	{
+		test_message,
 		"p256",
 		p256_priv,
 		p256_pub,
@@ -46,6 +50,7 @@ var testSets = []algorithmSet {
 		p256_enc_sign_message,
 	},
 	{
+		test_message,
 		"p384",
 		p384_priv,
 		p384_pub,
@@ -53,6 +58,7 @@ var testSets = []algorithmSet {
 		p384_enc_sign_message,
 	},
 	{
+		test_message,
 		"p521",
 		p521_priv,
 		p521_pub,
@@ -60,6 +66,7 @@ var testSets = []algorithmSet {
 		p521_enc_sign_message,
 	},
 	{
+		test_message,
 		"secp256k1",
 		secp256k1_priv,
 		secp256k1_pub,
@@ -67,36 +74,23 @@ var testSets = []algorithmSet {
 		secp256k1_enc_sign_message,
 	},
 	{
+		test_message,
 		"ed25519",
 		ed25519_priv,
 		ed25519_pub,
 		ed25519_pass,
 		ed25519_enc_sign_message,
 	},
-
+	{
+		brainpool_testmessage,
+		"brainpoolp256r1",
+		brainpoolp256r1_priv,
+		brainpoolp256r1_pub,
+		brainpoolp256r1_pass,
+		brainpoolp256r1_enc_sign_message,
+	},
 }
 
-/*
-[0x06, 0x07, 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07],
-    keyType: enums.publicKey.ecdsa,
-    hash: enums.hash.sha256,
-    cipher: enums.symmetric.aes128,
-    node: false // nodeCurves.brainpoolP256r1 TODO
-  },
-  brainpoolP384r1: {
-    oid: [0x06, 0x07, 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0B],
-    keyType: enums.publicKey.ecdsa,
-    hash: enums.hash.sha384,
-    cipher: enums.symmetric.aes192,
-    node: false // nodeCurves.brainpoolP384r1 TODO
-  },
-  brainpoolP512r1: {
-    oid: [0x06, 0x07, 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D],
-    keyType: enums.publicKey.ecdsa,
-    hash: enums.hash.sha512,
-    cipher: enums.symmetric.aes256,
-    node: false // nodeCurves.brainpoolP512r1 TODO
- */
 func readArmoredPublicKey(t *testing.T, publicKey string) EntityList {
 	keys, err := ReadArmoredKeyRing(bytes.NewBufferString(publicKey))
 	if err != nil {
@@ -158,7 +152,7 @@ func decryptionTest(t *testing.T, testSet algorithmSet, privateKey EntityList) {
 	}
 
 	var stringBody = string(body)
-	if stringBody != test_message {
+	if stringBody != testSet.message {
 		t.Fatal("Decrypted body did not match expected body")
 	}
 
@@ -761,6 +755,169 @@ i9OznbgOX1oXdHbyodjTe9H7OxgFi/BxH6zQlFhxappmD5I3fmp1/ONvfXf/
 KN5U4Rx7ftKgsaTMsEnKk/w8rEqxL8a1YtLe4X1tdecRBTi7qbndYeXp5lVl
 +tnmmywmjXk+mx/l+NluOga79j7pZ0zO
 =Co9x
+-----END PGP MESSAGE-----`
+
+const brainpool_testmessage = `test問量鮮控到案進平
+`
+
+
+const brainpoolp256r1_pass = ""
+
+const brainpoolp256r1_priv = `-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lHgEWrpD4RMJKyQDAwIIAQEHAgMEMyiJsl3MxlZFRRg518IiUbv+/294KU+dBq/B
+QYbvt4dHh4M7O9Rgfic8EPbe47wKr6v6Z7wXgHpjqtKRoBzlxAAA/jhgOEGBKP4E
+IRHwnwkFI5FRIf6A+R9oZQ0kay8/+xNCDGy0HXRlc3RAZ29jcnlwdG8gPHRlc3RA
+Z29jcnlwdG8+iJAEExMIADgWIQTWZQHprbRVRe9D5xkELYRs3suJpAUCWrpD4QIb
+AwULCQgHAgYVCAkKCwIEFgIDAQIeAQIXgAAKCRAELYRs3suJpGVgAP48h9xGECGF
+L87pAJSRedg//d+ucwcWTRpblHskV59+HgD/T5DvU4AfmKvYUyhfkhLkqU+g2HO+
+dGU+/maeQymZBmycfARaukPhEgkrJAMDAggBAQcCAwQfD3jLYinp+eI5OjtwPhPs
+GYO/OtUhD8T9dyVJL306RgZyrtO2lwwEM3S/bN5F0lymte5XddH2wkt6Gv3stGV2
+AwEIBwAA/0vEs+P6LCQMFoxePlHi5kNvbuX0UH8YK8dAtsiY/LC3EdyIeAQYEwgA
+IBYhBNZlAemttFVF70PnGQQthGzey4mkBQJaukPhAhsMAAoJEAQthGzey4mk44wA
+/0CN2zUDoUEeVN1XouqbKgr9AxG/ffrZkvZDt4irMycOAP40NcvlLSUHrO6XQZPA
+gTHjrXXT++KbkzQRVWMO8UpRwg==
+=BkRB
+-----END PGP PRIVATE KEY BLOCK-----`
+
+const brainpoolp256r1_pub = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mFMEWrpD4RMJKyQDAwIIAQEHAgMEMyiJsl3MxlZFRRg518IiUbv+/294KU+dBq/B
+QYbvt4dHh4M7O9Rgfic8EPbe47wKr6v6Z7wXgHpjqtKRoBzlxLQddGVzdEBnb2Ny
+eXB0byA8dGVzdEBnb2NyeXB0bz6IkAQTEwgAOBYhBNZlAemttFVF70PnGQQthGze
+y4mkBQJaukPhAhsDBQsJCAcCBhUICQoLAgQWAgMBAh4BAheAAAoJEAQthGzey4mk
+ZWAA/jyH3EYQIYUvzukAlJF52D/9365zBxZNGluUeyRXn34eAP9PkO9TgB+Yq9hT
+KF+SEuSpT6DYc750ZT7+Zp5DKZkGbLhXBFq6Q+ESCSskAwMCCAEBBwIDBB8PeMti
+Ken54jk6O3A+E+wZg7861SEPxP13JUkvfTpGBnKu07aXDAQzdL9s3kXSXKa17ld1
+0fbCS3oa/ey0ZXYDAQgHiHgEGBMIACAWIQTWZQHprbRVRe9D5xkELYRs3suJpAUC
+WrpD4QIbDAAKCRAELYRs3suJpOOMAP9Ajds1A6FBHlTdV6LqmyoK/QMRv3362ZL2
+Q7eIqzMnDgD+NDXL5S0lB6zul0GTwIEx46110/vim5M0EVVjDvFKUcI=
+=Bx7J
+-----END PGP PUBLIC KEY BLOCK-----`
+
+const brainpoolp256r1_enc_sign_message = `-----BEGIN PGP MESSAGE-----
+
+hH4DLFUmpfJ2kxcSAgMElfY0YbA1dI8s8MMhBHOXw0wwR/O+S8Pm/huBbkIbOb2c
+AL7ImXZYvPgS5tkpbxmItEedlLF439E8rwrPBqmrWTDSy/q9CyR2IKVSVNbConaz
+lyGGvVXNmGZm1jH2tDKAxqSGMUtuz4x6rgSqThRplSrSwBcBLd8NKo+3Q04AlSVf
+MdX0IZ3iualEff4RzpAwKdNO7V/y3z4Syhs2ZfXNGvt+F5Hnr9+PWnUcjQWUeWxS
+Z81hIqHWQ6paPBkM05I1P+zWuYF56UK7DGBIASBIJXaPclK1YoQ+o9ceChk9T6uy
+u3mju+/L4V2CAoY+G8DX3PtU6eFc+wVoyKFdEE9sjkVTbjK1zYqjlTR4R0zckX+L
+diQ5YxtNVswo92sg9wpD93+EN7YSFx9ZlC7JrRSlf0betdX4iQ4VO8lG2FahgcYI
+wyZAsOwGJD4+TQ==
+=GeXG
+-----END PGP MESSAGE-----`
+
+const brainpool384r1_priv = `-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lKgEWrqJ2RMJKyQDAwIIAQELAwMELWPYFx5PjaQLkP/dNEmMYqD72jsx/IzSO9j1
+FsmwE7hmosHMjXcDWrsxDuRqPfFMN98P/8kRB4Qn+o2dNHHdRuzAm/O5XCpoFGRL
+PJ7nIFn/DMf6gmFUxDZYwxbWiK2QAAF+NpeKlJvJr2gDf/d2DaRjwOCXCjUnOQuo
++XQAKlEp8SG3LRhnD9E/bKG4q3JHcH1jFY+0InRlc3QzODRAZ29jcnlwdG8gPHRl
+c3QzODRAZ29jcnlwdD6IsAQTEwkAOBYhBPD66ZJLMNNU+RLWJOJ39qEi22ymBQJa
+uonZAhsDBQsJCAcCBhUICQoLAgQWAgMBAh4BAheAAAoJEOJ39qEi22ym1dwBfi1T
+e1FIGoDOWl6pFY1n92Fuur4m5gJKiZ+f1Sh2ZsyE8mfxqloSZsERKx4KEVZCgwF8
+DHhvCatkh/WrEE2RXGO9fRnLXZGKGYbwuXAXDFa/cJJ+bUIDu/epm/4ge7E+X7NW
+nKwEWrqJ2RIJKyQDAwIIAQELAwMEh3cON/Xg5LSr6T9iMqgtVEIW8eAoCfi+p8NS
+4Xr+OLcEX6PhcY5lTKUZEf0zBqVMAn4yw12W389gJEzcwEq+eoyG5FYetezdhC8Z
+e+df1Ha7nnLY0TWBjTvNEnxdgx2YAwEJCQABf2uXve5jHifo/pNRLy7vXFNYN2zJ
+w7GSYvY35hmx5OjiM8HkDSYom1UB125p1b+/EhmIiJgEGBMJACAWIQTw+umSSzDT
+VPkS1iTid/ahIttspgUCWrqJ2QIbDAAKCRDid/ahIttspozuAX437euAjbm+goCs
+bWXr9j8+oRRK56CODQrwjGCdjeyFP/wEHjV96ZbBBLAspykPwL0Bf3FgnJe/mxFU
+MfjeXWX2rg7rPiWO9HU41dsEcZ2pvN3sC5mQchfqivFINTvIngmk2g==
+=8J0V
+-----END PGP PRIVATE KEY BLOCK-----`
+
+const brainpoolp384r1_pub = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mHMEWrqJ2RMJKyQDAwIIAQELAwMELWPYFx5PjaQLkP/dNEmMYqD72jsx/IzSO9j1
+FsmwE7hmosHMjXcDWrsxDuRqPfFMN98P/8kRB4Qn+o2dNHHdRuzAm/O5XCpoFGRL
+PJ7nIFn/DMf6gmFUxDZYwxbWiK2QtCJ0ZXN0Mzg0QGdvY3J5cHRvIDx0ZXN0Mzg0
+QGdvY3J5cHQ+iLAEExMJADgWIQTw+umSSzDTVPkS1iTid/ahIttspgUCWrqJ2QIb
+AwULCQgHAgYVCAkKCwIEFgIDAQIeAQIXgAAKCRDid/ahIttsptXcAX4tU3tRSBqA
+zlpeqRWNZ/dhbrq+JuYCSomfn9UodmbMhPJn8apaEmbBESseChFWQoMBfAx4bwmr
+ZIf1qxBNkVxjvX0Zy12RihmG8LlwFwxWv3CSfm1CA7v3qZv+IHuxPl+zVrh3BFq6
+idkSCSskAwMCCAEBCwMDBId3Djf14OS0q+k/YjKoLVRCFvHgKAn4vqfDUuF6/ji3
+BF+j4XGOZUylGRH9MwalTAJ+MsNdlt/PYCRM3MBKvnqMhuRWHrXs3YQvGXvnX9R2
+u55y2NE1gY07zRJ8XYMdmAMBCQmImAQYEwkAIBYhBPD66ZJLMNNU+RLWJOJ39qEi
+22ymBQJauonZAhsMAAoJEOJ39qEi22ymjO4Bfjft64CNub6CgKxtZev2Pz6hFErn
+oI4NCvCMYJ2N7IU//AQeNX3plsEEsCynKQ/AvQF/cWCcl7+bEVQx+N5dZfauDus+
+JY70dTjV2wRxnam83ewLmZByF+qK8Ug1O8ieCaTa
+=vEH0
+-----END PGP PUBLIC KEY BLOCK-----`
+
+const brainpoolp384r1_enc_sign_message = `-----BEGIN PGP MESSAGE-----
+
+hJ4D25491by3UQcSAwMEidpiLdDr/FBd9HVhN1kjJkagjbXQrKPuu47ws2k67MBS
+gNo913vEQOzhqdiVliYtMAIpEt4sNyWCQ+TUEigsFiaG6Dp0wPG4/qVhRgRB4poN
+jyIOvcTkW+Ze8m5wjUHJMIuUlrcUhDKpTRUiWaCuMG099YhTndV/vHHLJLAgyn3r
+GTmT6CnwHwtrbikJAC/I09LAOgGlDrS761lbkUbWm64Zl6Tqa56ioZVe1rEXB1aG
+x8uoraH9XwrKBu99KBnXegez3NBmb8V9r1ZJ6WTYN8QnIrtZCwI2ssdNLuQRZJU3
+X/D1ZeEkQO/125Df/df5vfR9J7Vmg5R1cJ03AEv4apu3P+P8PdvONF0Xr82ZX7++
+sLfK22tMrP1W0+mxnvu45B9Gz7ymT+2kLu6iyuvAW17IkC0yUqn7Js6XdDpFk/h7
+u5G2RTWbD9Zhdmv0p8MqpvTb8DugOTjwXxWa6Mr384O0btojdAV2+T3FBko45ubV
+bmKARW86AH7YpKjCbedsy9e5SvQohv102w/mZVk=
+=C5uY
+-----END PGP MESSAGE-----`
+
+const brainpoolp512r1_priv = `-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lNgEWrqKjRMJKyQDAwIIAQENBAMEDI4HTYTe2L0kzVVIJUrN7+8KivNLQNRUeLFp
+oeKHeEqZdzv2zuYsqW91wTcxuobHuyhz2Rw/6GuxCjHMZKe1OEKzO73MHvk5x3Ut
+gsU3ziA4GYM1fPJobOJXwEvB7Hdt1jPnX6FDzsnnDb/V08o7oRDiFF+nakbZ4fdh
+BGPtoO8AAf94HXntn7GFtPoPKEG4GjDchW7kLoi99khL4afe/rEuuWDT4ue/osUw
+gDxddaBV2HpYlJtljbALvS+Fqlaz6+7mJOG0InRlc3Q1MTJAZ29jcnlwdG8gPHRl
+c3Q1MTJAZ29jcnlwdD6I0AQTEwoAOBYhBFZP0ImPk6gNK4o9sl/7WVyCi79OBQJa
+uoqNAhsDBQsJCAcCBhUICQoLAgQWAgMBAh4BAheAAAoJEF/7WVyCi79OH2YCAIdC
+LCIm4/8dTT3RROYFK/ERghCXH6Q42U5ojGdVc4+HSLiWyUijjqSznhrRtY4Izfcd
+23eLZCo1TjvfPWsK8N0B/1eRbHersapjqA2jhHjbhGr6pyZhmBZtMpeqJ80R86Ka
+cFcRH008VrqJoZwSRt+BQHDdwiWG+ZQiTY8Y9KmZ5pSc3ARauoqNEgkrJAMDAggB
+AQ0EAwQ0T5L5YcJMUFF8OYFvHlwcym3o3APGsbUCvfhUguYWOyEr9drNiYCaC0gl
+bO+KackLO30gWiVg1gHY3CoJfi0kRwt1tXKkiqh7wCD2BPDzP0lhF3nHaAKNpg3h
+mpGUcZui9FyTezwK6CjqBgAhLETCwevB1MXQuvvPgw9uil7rbQMBCgkAAf96G+z/
+K9vrz/nhvZessIeGAEHhmrGkHLBpw+9IGDs7hWNvisTn99JezTtPbYMInrwmEOB9
+9VoAIO8Xrom5XFXjI42IuAQYEwoAIBYhBFZP0ImPk6gNK4o9sl/7WVyCi79OBQJa
+uoqNAhsMAAoJEF/7WVyCi79O3QIB/1e/HKOHV7504x0wu14qXDN+2QW8P6j8d0qI
+GB7xOegf8Z8KgzGywZFjTT6GKBqPTz2vMd4u44/sLBVBgPgiKQgB/308ETfQaPcz
+ctjlrmykdX0TrdiKLy92xAqsohFff5Ri5pr500005rTYJfNYN+Cug6u9UygWL2RY
+u4H95mtsxZo=
+=Qb7k
+-----END PGP PRIVATE KEY BLOCK-----`
+
+const brainpoolp512r1_pub = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mJMEWrqKjRMJKyQDAwIIAQENBAMEDI4HTYTe2L0kzVVIJUrN7+8KivNLQNRUeLFp
+oeKHeEqZdzv2zuYsqW91wTcxuobHuyhz2Rw/6GuxCjHMZKe1OEKzO73MHvk5x3Ut
+gsU3ziA4GYM1fPJobOJXwEvB7Hdt1jPnX6FDzsnnDb/V08o7oRDiFF+nakbZ4fdh
+BGPtoO+0InRlc3Q1MTJAZ29jcnlwdG8gPHRlc3Q1MTJAZ29jcnlwdD6I0AQTEwoA
+OBYhBFZP0ImPk6gNK4o9sl/7WVyCi79OBQJauoqNAhsDBQsJCAcCBhUICQoLAgQW
+AgMBAh4BAheAAAoJEF/7WVyCi79OH2YCAIdCLCIm4/8dTT3RROYFK/ERghCXH6Q4
+2U5ojGdVc4+HSLiWyUijjqSznhrRtY4Izfcd23eLZCo1TjvfPWsK8N0B/1eRbHer
+sapjqA2jhHjbhGr6pyZhmBZtMpeqJ80R86KacFcRH008VrqJoZwSRt+BQHDdwiWG
++ZQiTY8Y9KmZ5pS4lwRauoqNEgkrJAMDAggBAQ0EAwQ0T5L5YcJMUFF8OYFvHlwc
+ym3o3APGsbUCvfhUguYWOyEr9drNiYCaC0glbO+KackLO30gWiVg1gHY3CoJfi0k
+Rwt1tXKkiqh7wCD2BPDzP0lhF3nHaAKNpg3hmpGUcZui9FyTezwK6CjqBgAhLETC
+wevB1MXQuvvPgw9uil7rbQMBCgmIuAQYEwoAIBYhBFZP0ImPk6gNK4o9sl/7WVyC
+i79OBQJauoqNAhsMAAoJEF/7WVyCi79O3QIB/1e/HKOHV7504x0wu14qXDN+2QW8
+P6j8d0qIGB7xOegf8Z8KgzGywZFjTT6GKBqPTz2vMd4u44/sLBVBgPgiKQgB/308
+ETfQaPczctjlrmykdX0TrdiKLy92xAqsohFff5Ri5pr500005rTYJfNYN+Cug6u9
+UygWL2RYu4H95mtsxZo=
+=3o0a
+-----END PGP PUBLIC KEY BLOCK-----`
+
+const brainpoolp512r1_enc_sign_message = `-----BEGIN PGP MESSAGE-----
+
+hL4DpJcoPAigmZESBAMEonrXiHjcMR/PE/ZwHEfC2rqhzugPOjxoytUCFx/WwLyI
+hREwlk3QA4wKO/xM9bgIkUg9bVlbJtsGceAcDgzxPonaeP+UhEMpi+otV4NT9y/F
+DPtdGCzM+n4rYHUzJqC5reyzjDbadiiV81YKoY67ZPulMwpqvZbCq1z9p0Qvpyww
+M4Tk2YJP1seL0WlcM3Tt7i0ZmegAa53OopqNLz5Mopba+f1aQOJeg8poY7xeR6Rq
+0sBaAf1vfSsrWQgBFxYwTWLtzysuls4l2h/xGoa2Ril9kAz0AZ7I3XdrXiaSkPAJ
+wkOI7zAdKE9urG0ZqsomInQq+u3RPQ349zms7B/+VttAlAg8WDKMDcNcFvPFDN85
+UACHO5UciN3682snpVmETKIo7jFXHj4ie9ITzpk/3MmWxvqbe1MiS1lQrRMY5PWL
+j9JULeBESodavfg2Mcf5tWGS7bMn/shojxbaYORZi70dw0Cl/e9Noh1hUeBd6ip6
+VkwhyLHSTB5tIq5pKSlNhgkuJDEhVvHsbFRjoioetH7hRkV4yolSWxB5iMT0lD1+
+KEKKTcNt1VHJ1cgSKi+S/fGYvHIPt1C2mXK1EBOqzJhVJxR8GNF3jF2aYG2r
+=zG+7
 -----END PGP MESSAGE-----`
 
 
